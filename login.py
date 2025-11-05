@@ -23,7 +23,7 @@ def application():
     
     # Custom title with center alignment and increased font size
     st.markdown("""
-        <h1 style='text-align: center; font-size: 50px;'>ForeSight
+        <h1 style='text-align: center; font-size: 50px;'>Sql Agent
  </h1>
         <h3 style='text-align: center;'>
  </h3>

@@ -70,7 +70,7 @@ def application():
     if st.sidebar.button("📊 DataPulse"):
         st.session_state.page = "datapulse"
         st.rerun()
-    if st.sidebar.button("💬 Ask Foresight"):
+    if st.sidebar.button("💬 Ask Sql Agent"):
         st.session_state.page = "wilson_main"
         st.rerun()
     if st.sidebar.button(" Logout"):

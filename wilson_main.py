@@ -128,11 +128,11 @@ def save_chat_history(user_id, thread_id, messages, title=None):
 def application():
     image_url = None
     # Sidebar Buttons
-    st.sidebar.title("ForeSight")
+    st.sidebar.title("Sql Agent")
     if st.sidebar.button("📊 DataPulse"):
         st.session_state.page = "datapulse"
         st.rerun()
-    if st.sidebar.button("Ask Foresight"):
+    if st.sidebar.button("Ask Sql Agent"):
         st.session_state.page = "wilson_main"
         st.rerun()
     if st.sidebar.button("🗂️ Chat History"):
@@ -145,8 +145,8 @@ def application():
 
     if st.sidebar.button("� Logout"):
         logout()
-        st.sidebar.title("Foresight")
-    st.title("✨Foresight")
+        st.sidebar.title("Sql Agent")
+    st.title("✨Sql Agent")
     st.subheader("Your AI-powered assistant for smarter, faster business insights")
 
     user_id = st.session_state.get("username")
@@ -167,7 +167,7 @@ def application():
         with st.chat_message(msg["role"]):
             st.write(msg["content"])
 
-    user_query = st.chat_input("Ask Foresight...")
+    user_query = st.chat_input("Ask Sql Agent...")
 
     if user_query:
         st.chat_message("user").markdown(user_query)

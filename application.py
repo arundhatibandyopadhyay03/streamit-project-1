@@ -1,6 +1,6 @@
 import streamlit as st
 # Set page config here as the first Streamlit command
-st.set_page_config(page_title="Foresight", page_icon="📄")
+st.set_page_config(page_title="Sql Agent", page_icon="📄")
 
 import login
 import wilson_main
