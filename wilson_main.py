@@ -92,7 +92,7 @@ def logout():
     for key in list(st.session_state.keys()):
         del st.session_state[key]
     st.session_state.page = "login"
-    st.experimental_rerun()
+    st.rerun()
 
 def save_chat_history(user_id, thread_id, messages, title=None):
     query = f"SELECT * FROM c WHERE c.userId = @userId AND c.threadId = @threadId"
@@ -131,17 +131,17 @@ def application():
     st.sidebar.title("ForeSight")
     if st.sidebar.button("📊 DataPulse"):
         st.session_state.page = "datapulse"
-        st.experimental_rerun()
+        st.rerun()
     if st.sidebar.button("Ask Foresight"):
         st.session_state.page = "wilson_main"
-        st.experimental_rerun()
-    if st.sidebar.button("�🗂️ Chat History"):
+        st.rerun()
+    if st.sidebar.button("🗂️ Chat History"):
         st.session_state.page = "wilson_chat_history"
-        st.experimental_rerun()
+        st.rerun()
 
     if st.sidebar.button("Foresight Studio"):
         st.session_state.page = "charts"
-        st.experimental_rerun()
+        st.rerun()
 
     if st.sidebar.button("� Logout"):
         logout()

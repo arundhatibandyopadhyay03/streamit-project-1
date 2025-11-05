@@ -6,21 +6,21 @@ def application():
     st.sidebar.title("Foresight")
     if st.sidebar.button("📊 DataPulse"):
         st.session_state.page = "datapulse"
-        st.experimental_rerun()
+        st.rerun()
     if st.sidebar.button("💬 Ask Foresight"):
         st.session_state.page = "wilson_main"
-        st.experimental_rerun()
+        st.rerun()
     if st.sidebar.button("🗂️ Chat History"):
         st.session_state.page = "wilson_chat_history"
-        st.experimental_rerun()
+        st.rerun()
     if st.sidebar.button("📈 ForeSight Studio"):
         st.session_state.page = "charts"
-        st.experimental_rerun()
+        st.rerun()
     if st.sidebar.button("🚪 Logout"):
         for key in list(st.session_state.keys()):
             del st.session_state[key]
         st.session_state.page = "login"
-        st.experimental_rerun()
+        st.rerun()
 
     st.title("DataPulse")
 
@@ -60,10 +60,10 @@ def application():
                     "Message": message
                 })
                 st.session_state.show_add_alert = False
-                st.experimental_rerun()
+                st.rerun()
             if cancelled:
                 st.session_state.show_add_alert = False
-                st.experimental_rerun()
+                st.rerun()
 
     # Table header (no dropdowns)
     st.markdown("""

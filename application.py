@@ -22,7 +22,7 @@ protected_pages = ["wilson_main", "wilson_chat_history", "charts", "datapulse"]
 if page in protected_pages and not st.session_state.authenticated:
     st.warning("⚠️ Please log in to continue.")
     st.session_state.page = "login"
-    st.experimental_rerun()
+    st.rerun()
 if page == "login":
     login.application()  # call login's app function to run the login UI
 elif page == "wilson_main":

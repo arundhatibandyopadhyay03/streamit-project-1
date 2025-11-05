@@ -50,7 +50,7 @@ def application():
              # 👇 Set flag to reset thread in wilson_main
             st.session_state.just_logged_in = True
             st.session_state.page = "wilson_main"
-            st.experimental_rerun()
+            st.rerun()
         else:
             st.error("❌ Invalid username or password")
 
