@@ -1,12 +1,22 @@
 # login.py
 import streamlit as st
+import os
 
-VALID_USERS = {
-    "user1": "password1",
-    "admin": "admin123",
-    "john": "doe456",
-    "dev": "admin",
-}
+def get_valid_users():
+    """Load user credentials from Streamlit secrets or environment variables"""
+    try:
+        # Try Streamlit secrets first (for cloud deployment)
+        return dict(st.secrets["auth"])
+    except (KeyError, FileNotFoundError):
+        # Fallback to environment variables (for local development)
+        return {
+            "user1": os.getenv("AUTH_USER1", "password1"),
+            "admin": os.getenv("AUTH_ADMIN", "admin123"),
+            "john": os.getenv("AUTH_JOHN", "doe456"),
+            "dev": os.getenv("AUTH_DEV", "admin"),
+        }
+
+VALID_USERS = get_valid_users()
 
 def application():
     

@@ -17,23 +17,49 @@ import hashlib
 os.environ["HTTP_PROXY"] = ""
 os.environ["HTTPS_PROXY"] = ""
 
+# === Load Configuration from Streamlit Secrets or Environment Variables ===
+def get_config():
+    """Load configuration from Streamlit secrets or environment variables"""
+    try:
+        # Try Streamlit secrets first (for cloud deployment)
+        return {
+            "AZURE_OPENAI_KEY": st.secrets["azure_openai"]["key"],
+            "AZURE_OPENAI_ENDPOINT": st.secrets["azure_openai"]["endpoint"],
+            "AZURE_OPENAI_VERSION": st.secrets["azure_openai"]["version"],
+            "ASSISTANT_ID": st.secrets["azure_openai"]["assistant_id"],
+            "BLOB_CONNECTION_STRING": st.secrets["azure_storage"]["connection_string"],
+            "BLOB_CONTAINER_NAME": st.secrets["azure_storage"]["container_name"],
+            "COSMOS_ENDPOINT": st.secrets["azure_cosmos"]["endpoint"],
+            "COSMOS_KEY": st.secrets["azure_cosmos"]["key"],
+            "COSMOS_DB_NAME": st.secrets["azure_cosmos"]["database_name"],
+            "COSMOS_CONTAINER_NAME": st.secrets["azure_cosmos"]["container_name"],
+            "account_name": st.secrets["azure_storage"]["account_name"],
+            "account_key": st.secrets["azure_storage"]["account_key"],
+        }
+    except (KeyError, FileNotFoundError):
+        # Fallback to environment variables (for local development)
+        from config import load_env_config
+        return load_env_config()
+
+# Load configuration
+config = get_config()
 
 # === Constants ===
-AZURE_OPENAI_KEY = "03Q78RfTsocV8O8bnFJ58F8FdJQM5MA2IgE2n3OSudWpfKTh4UWnJQQJ99ALACL93NaXJ3w3AAAAACOGWgGG"
-AZURE_OPENAI_ENDPOINT = "https://happpt6262624605.openai.azure.com/"
-AZURE_OPENAI_VERSION = "2024-05-01-preview"
-ASSISTANT_ID = "asst_UUhSYD2kSxkP2DWOeItCVDNv"
+AZURE_OPENAI_KEY = config["AZURE_OPENAI_KEY"]
+AZURE_OPENAI_ENDPOINT = config["AZURE_OPENAI_ENDPOINT"]
+AZURE_OPENAI_VERSION = config["AZURE_OPENAI_VERSION"]
+ASSISTANT_ID = config["ASSISTANT_ID"]
 
-BLOB_CONNECTION_STRING = "DefaultEndpointsProtocol=https;AccountName=bnlwestgunileverad03650;AccountKey=3kghaUEkCr4fk4POdOGraYaYakb1m3q9RVKC6WJX1ue762J7AiNWuu9DB7RcLYen8WfLf5w3BU5e+AStRxZZ3w==;EndpointSuffix=core.windows.net"
-BLOB_CONTAINER_NAME = "6p-crib-sheet-generator-input-data"
+BLOB_CONNECTION_STRING = config["BLOB_CONNECTION_STRING"]
+BLOB_CONTAINER_NAME = config["BLOB_CONTAINER_NAME"]
 
-COSMOS_ENDPOINT = "https://bnlweaf01q930626hp01cosmosdbwilson01.documents.azure.com:443/"
-COSMOS_KEY = "3jFbeNzmrZWGSBKiwJiKC64ypNHDTSZU81NPnacjrYuolNj9dL52l0ekVMYeGIzwxP2Pr1e60CYlACDbYy42sg=="
-COSMOS_DB_NAME = "Wilson"
-COSMOS_CONTAINER_NAME = "wilson_chat_history"
+COSMOS_ENDPOINT = config["COSMOS_ENDPOINT"]
+COSMOS_KEY = config["COSMOS_KEY"]
+COSMOS_DB_NAME = config["COSMOS_DB_NAME"]
+COSMOS_CONTAINER_NAME = config["COSMOS_CONTAINER_NAME"]
 
-account_name = "bnlwestgunileverad03650"
-account_key = "3kghaUEkCr4fk4POdOGraYaYakb1m3q9RVKC6WJX1ue762J7AiNWuu9DB7RcLYen8WfLf5w3BU5e+AStRxZZ3w=="
+account_name = config["account_name"]
+account_key = config["account_key"]
 
 # === Initialize Clients ===
 client = AzureOpenAI(api_key=AZURE_OPENAI_KEY, api_version=AZURE_OPENAI_VERSION, azure_endpoint=AZURE_OPENAI_ENDPOINT)
