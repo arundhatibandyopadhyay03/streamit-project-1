@@ -125,7 +125,7 @@ def application():
     if st.sidebar.button("🗂️ Chat History"):
         st.session_state.page = "wilson_chat_history"
         st.rerun()
-    if st.sidebar.button("📈 ForeSight Studio"):
+    if st.sidebar.button("📈 Sql AgentStudio"):
         st.session_state.page = "charts"
         st.rerun()
     if st.sidebar.button("🚪 Logout"):
@@ -134,7 +134,7 @@ def application():
         st.session_state.page = "login"
         st.rerun()
 
-    st.title("📊 ForeSight Studio")
+    st.title("📊 Sql AgentStudio")
     st.write("Submit a query to the assistant to generate a chart .")
 
     chart_query = st.text_input("Enter a chart generation query (assistant will create the chart)", key="chart_query_input")

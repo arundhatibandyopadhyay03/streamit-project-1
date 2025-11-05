@@ -66,7 +66,7 @@ def application():
         st.stop()
 
     user_id = st.session_state.username
-    st.title(f"Foresight Chat History - User: {user_id}")
+    st.title(f"Sql AgentChat History - User: {user_id}")
     if st.sidebar.button("📊 DataPulse"):
         st.session_state.page = "datapulse"
         st.rerun()
@@ -75,7 +75,7 @@ def application():
         st.rerun()
     if st.sidebar.button(" Logout"):
         logout()
-    if st.sidebar.button("📈 ForeSight Studio"):
+    if st.sidebar.button("📈 Sql AgentStudio"):
         st.session_state.page = "charts"
         st.rerun()
 

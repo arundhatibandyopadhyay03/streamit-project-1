@@ -139,7 +139,7 @@ def application():
         st.session_state.page = "wilson_chat_history"
         st.rerun()
 
-    if st.sidebar.button("Foresight Studio"):
+    if st.sidebar.button("Sql AgentStudio"):
         st.session_state.page = "charts"
         st.rerun()
 
