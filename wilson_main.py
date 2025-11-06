@@ -94,7 +94,7 @@ def logout():
     st.session_state.page = "login"
     st.rerun()
 
-def save_chat_history(user_id, thread_id, messages, title=None):
+def save_chat_history(user_id, thread_id, messages, title=None, uploaded_files=None):
     query = f"SELECT * FROM c WHERE c.userId = @userId AND c.threadId = @threadId"
     parameters = [
         {"name": "@userId", "value": user_id},
@@ -111,18 +111,83 @@ def save_chat_history(user_id, thread_id, messages, title=None):
         existing_doc["messages"] = messages
         existing_doc["timestamp"] = timestamp
         existing_doc["title"] = title
+        if uploaded_files:
+            existing_doc["uploaded_files"] = uploaded_files
         container.replace_item(item=existing_doc, body=existing_doc)
     else:
         # Create new document
         item_id = hashlib.sha256(f"{user_id}-{thread_id}".encode()).hexdigest()
-        container.upsert_item({
+        doc_data = {
             "id": item_id,
             "userId": user_id,
             "threadId": thread_id,
             "timestamp": timestamp,
             "title": title,
             "messages": messages
-        })
+        }
+        if uploaded_files:
+            doc_data["uploaded_files"] = uploaded_files
+        container.upsert_item(doc_data)
+
+def upload_files_to_thread(uploaded_files, thread_id):
+    """Upload files to OpenAI and return their IDs"""
+    uploaded_file_ids = []
+    if not uploaded_files:
+        return uploaded_file_ids
+    
+    for uploaded_file in uploaded_files:
+        try:
+            # Upload file to OpenAI
+            file_obj = client.files.create(
+                file=uploaded_file,
+                purpose="assistants"
+            )
+            uploaded_file_ids.append(file_obj.id)
+            st.success(f"✅ Uploaded: {uploaded_file.name}")
+        except Exception as e:
+            st.error(f"❌ Failed to upload {uploaded_file.name}: {str(e)}")
+    
+    return uploaded_file_ids
+
+def get_thread_files(thread_id):
+    """Get list of files attached to the thread (from session state)"""
+    try:
+        # Prefer session state since we control uploads
+        return st.session_state.get("uploaded_file_ids", [])
+    except Exception as e:
+        st.error(f"Error retrieving thread files: {str(e)}")
+    return []
+
+def display_uploaded_files(thread_id):
+    """Display currently uploaded files in the thread"""
+    file_ids = get_thread_files(thread_id)
+    if file_ids:
+        st.sidebar.subheader("📁 Uploaded Files")
+        for file_id in file_ids:
+            try:
+                file_info = client.files.retrieve(file_id)
+                st.sidebar.text(f"• {file_info.filename}")
+            except Exception as e:
+                st.sidebar.text(f"• File ID: {file_id}")
+
+def send_query_with_files(client, thread_id, user_query, file_ids):
+    """Send user query and attach files in batches of 10"""
+    for i in range(0, len(file_ids), 10):
+        batch = file_ids[i:i+10]
+        attachments = [{"file_id": fid, "tools": [{"type": "file_search"}]} 
+                      for fid in batch]
+        
+        if i == 0:
+            content = user_query + " Please use the uploaded files for context."
+        else:
+            content = "Additional context files attached."
+        
+        client.beta.threads.messages.create(
+            thread_id=thread_id,
+            role="user",
+            content=content,
+            attachments=attachments
+        )
 
 
 def application():
@@ -161,11 +226,53 @@ def application():
 
     if "messages" not in st.session_state:
         st.session_state.messages = []
+    
+    if "uploaded_file_ids" not in st.session_state:
+        st.session_state.uploaded_file_ids = []
+
+    # File Upload Section
+    st.subheader("📎 Upload Files")
+    uploaded_files = st.file_uploader(
+        "Choose files to upload",
+        type=['pdf', 'docx', 'xlsx', 'csv', 'txt', 'pptx', 'json', 'md'],
+        accept_multiple_files=True,
+        help="Upload documents that the assistant can search through and reference"
+    )
+
+    # Upload button
+    if uploaded_files and st.button("🔄 Upload Files to Conversation"):
+        with st.spinner("Uploading files..."):
+            new_file_ids = upload_files_to_thread(uploaded_files, st.session_state.thread_id)
+            st.session_state.uploaded_file_ids.extend(new_file_ids)
+            # Save updated file list to chat history
+            save_chat_history(
+                user_id, 
+                st.session_state.thread_id, 
+                st.session_state.messages,
+                uploaded_files=st.session_state.uploaded_file_ids
+            )
+
+    # Display currently uploaded files
+    display_uploaded_files(st.session_state.thread_id)
+
+    # Add option to clear files
+    if st.sidebar.button("🗑️ Clear All Files"):
+        try:
+            # Clear uploaded file IDs from session state
+            st.session_state.uploaded_file_ids = []
+            st.success("✅ All files cleared from conversation.")
+            st.rerun()
+        except Exception as e:
+            st.error(f"Error clearing files: {str(e)}")
+
+    st.divider()
 
     # Display previous messages
     for msg in st.session_state.messages:
         with st.chat_message(msg["role"]):
             st.write(msg["content"])
+            if msg.get("image_url"):
+                st.image(msg["image_url"], caption="Generated Image", width=350)
 
     user_query = st.chat_input("Ask Sql Agent...")
 
@@ -173,14 +280,33 @@ def application():
         st.chat_message("user").markdown(user_query)
         st.session_state.messages.append({"role": "user", "content": user_query})
 
-        client.beta.threads.messages.create(thread_id=st.session_state.thread_id, role="user", content=user_query)
-        run = client.beta.threads.runs.create(thread_id=st.session_state.thread_id, assistant_id=ASSISTANT_ID)
+        # Send message with or without file attachments
+        if not st.session_state.uploaded_file_ids:
+            client.beta.threads.messages.create(
+                thread_id=st.session_state.thread_id, 
+                role="user", 
+                content=user_query
+            )
+        else:
+            send_query_with_files(
+                client,
+                st.session_state.thread_id,
+                user_query,
+                st.session_state.uploaded_file_ids
+            )
 
-        while run.status in ["queued", "in_progress", "cancelling"]:
-            time.sleep(1)
-            run = client.beta.threads.runs.retrieve(thread_id=st.session_state.thread_id, run_id=run.id)
+        run = client.beta.threads.runs.create(
+            thread_id=st.session_state.thread_id, 
+            assistant_id=ASSISTANT_ID,
+            tools=[{"type": "file_search"}]  # Enable file search tool
+        )
 
-        # === CONTINUED FROM YOUR EXISTING SCRIPT ===
+        # Show spinner while processing
+        with st.spinner("Processing your request..."):
+            while run.status in ["queued", "in_progress", "cancelling"]:
+                time.sleep(1)
+                run = client.beta.threads.runs.retrieve(thread_id=st.session_state.thread_id, run_id=run.id)
+
         if run.status == "completed":
             latest_message = None
             messages = client.beta.threads.messages.list(thread_id=st.session_state.thread_id)
@@ -252,8 +378,15 @@ def application():
                             )
                         else:
                             st.warning(f"⚠️ Blob not found: {blob_name}")
+        elif run.status == "failed":
+            st.chat_message("assistant").write(f"❌ Assistant failed: {run.last_error}")
         else:
             st.chat_message("assistant").write("❌ Assistant failed to respond.")
 
         # Save chat history after each interaction
-        save_chat_history(user_id, st.session_state.thread_id, st.session_state.messages)
+        save_chat_history(
+            user_id, 
+            st.session_state.thread_id, 
+            st.session_state.messages,
+            uploaded_files=st.session_state.uploaded_file_ids
+        )
