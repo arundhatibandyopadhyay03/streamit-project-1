@@ -194,23 +194,9 @@ def application():
     image_url = None
     # Sidebar Buttons
     st.sidebar.title("Sql Agent")
-    if st.sidebar.button("📊 DataPulse"):
-        st.session_state.page = "datapulse"
-        st.rerun()
-    if st.sidebar.button("Ask Sql Agent"):
-        st.session_state.page = "wilson_main"
-        st.rerun()
-    if st.sidebar.button("🗂️ Chat History"):
-        st.session_state.page = "wilson_chat_history"
-        st.rerun()
-
-    if st.sidebar.button("Sql AgentStudio"):
-        st.session_state.page = "charts"
-        st.rerun()
-
-    if st.sidebar.button("� Logout"):
+    
+    if st.sidebar.button("🚪 Logout"):
         logout()
-        st.sidebar.title("Sql Agent")
     st.title("✨Sql Agent")
     st.subheader("Your AI-powered assistant for smarter, faster business insights")
 
